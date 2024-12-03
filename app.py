@@ -1,44 +1,74 @@
-# app.py
 import streamlit as st
-from data import blood_banks
-from auth import create_user, authenticate_user
+from auth import create_user, login_user
+from data import get_blood_banks
 
-# UI: Home Page
+# UI Enhancement with CSS
+st.markdown("""
+    <style>
+        .stButton > button {
+            background-color: #ff5733;
+            color: white;
+            border-radius: 8px;
+        }
+        .blood-bank-box {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+""", unsafe_allow_html=True)
+
 st.title("Karachi Blood Bank Finder")
 
-page = st.sidebar.selectbox("Select Page", ["Find Blood Bank", "Login", "Register"])
+# Tabs for User Login & Blood Bank Finder
+tab1, tab2 = st.tabs(["Find Blood Bank", "User Account"])
 
-if page == "Find Blood Bank":
-    st.header("Search for a Blood Bank")
-    area = st.selectbox("Select Your Area", [bank["location"] for bank in blood_banks])
-    blood_group = st.selectbox("Select Blood Group", ["A+", "B+", "O+", "AB+", "A-", "B-", "O-", "AB-"])
+with tab1:
+    st.header("Find Nearby Blood Bank")
+    location = st.selectbox("Select Your Location:", [
+        "Clifton", "Saddar", "Gulshan-e-Iqbal", "DHA", "Nazimabad", "Korangi", 
+        "Liaquatabad", "Malir", "Landhi", "Orangi Town", "Shah Faisal Colony",
+        "PECHS", "Gulistan-e-Jauhar"
+    ])
+    blood_group = st.selectbox("Select Required Blood Group:", ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"])
     
-    st.write("Nearby Blood Banks:")
-    for bank in blood_banks:
-        if bank["location"] == area:
-            st.markdown(f"""
-            **{bank['name']}**  
-            Location: {bank['location']}  
-            Contact: {bank['contact']}  
-            Distance: {bank['distance']} km  
-            """)
-elif page == "Register":
-    st.header("Create an Account")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    email = st.text_input("Email")
-    phone = st.text_input("Phone")
-    location = st.selectbox("Location", [bank["location"] for bank in blood_banks])
-    blood_group = st.selectbox("Preferred Blood Group", ["A+", "B+", "O+", "AB+", "A-", "B-", "O-", "AB-"])
-    
-    if st.button("Register"):
-        st.write(create_user(username, password, email, phone, location, blood_group))
-elif page == "Login":
-    st.header("Login to Your Account")
-    username = st.text_input("Username")
-    password = st.text_input("Password", type="password")
-    if st.button("Login"):
-        if authenticate_user(username, password):
-            st.success("Login Successful!")
+    if st.button("Find Blood Banks"):
+        blood_banks = get_blood_banks(location, blood_group)
+        if blood_banks:
+            for bank in blood_banks:
+                st.markdown(f"""
+                <div class='blood-bank-box'>
+                    <strong>Name:</strong> {bank['name']}<br>
+                    <strong>Location:</strong> {bank['location']}<br>
+                    <strong>Contact:</strong> {bank['contact']}<br>
+                    <strong>Distance:</strong> {bank['distance']} km
+                </div>
+                """, unsafe_allow_html=True)
         else:
-            st.error("Invalid credentials.")
+            st.error("No blood banks found nearby.")
+
+with tab2:
+    st.subheader("User Account")
+    action = st.radio("Choose Action", ["Login", "Register"])
+    
+    if action == "Register":
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        email = st.text_input("Email")
+        phone = st.text_input("Phone")
+        location = st.selectbox("Location:", ["Clifton", "Saddar", "Nazimabad", "Malir"])
+        blood_group = st.selectbox("Preferred Blood Group:", ["A+", "O+", "B+", "AB+"])
+        if st.button("Register"):
+            st.write(create_user(username, password, email, phone, location, blood_group))
+    
+    elif action == "Login":
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        if st.button("Login"):
+            result = login_user(username, password)
+            if result:
+                st.success("Login successful!")
+            else:
+                st.error("Invalid credentials.")
