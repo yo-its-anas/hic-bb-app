@@ -1,8 +1,8 @@
 import streamlit as st
 from auth import create_user, login_user
-from data import get_blood_banks
+from data import get_blood_banks  # Ensure the indentation is correct here
 
-# UI Enhancement with CSS
+# CSS for styling
 st.markdown("""
     <style>
         .stButton > button {
@@ -22,7 +22,6 @@ st.markdown("""
 
 st.title("Karachi Blood Bank Finder")
 
-# Tabs for User Login & Blood Bank Finder
 tab1, tab2 = st.tabs(["Find Blood Bank", "User Account"])
 
 with tab1:
@@ -48,27 +47,3 @@ with tab1:
                 """, unsafe_allow_html=True)
         else:
             st.error("No blood banks found nearby.")
-
-with tab2:
-    st.subheader("User Account")
-    action = st.radio("Choose Action", ["Login", "Register"])
-    
-    if action == "Register":
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        email = st.text_input("Email")
-        phone = st.text_input("Phone")
-        location = st.selectbox("Location:", ["Clifton", "Saddar", "Nazimabad", "Malir"])
-        blood_group = st.selectbox("Preferred Blood Group:", ["A+", "O+", "B+", "AB+"])
-        if st.button("Register"):
-            st.write(create_user(username, password, email, phone, location, blood_group))
-    
-    elif action == "Login":
-        username = st.text_input("Username")
-        password = st.text_input("Password", type="password")
-        if st.button("Login"):
-            result = login_user(username, password)
-            if result:
-                st.success("Login successful!")
-            else:
-                st.error("Invalid credentials.")
